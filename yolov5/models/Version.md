@@ -104,7 +104,7 @@ head:
 
 ### 小规模数据验证：
 
-1. C3TR 可以量化且推理，但似乎性能没有 SimAM 的 Version 1 要好，可以用全量数据集试一下了。
+1. C3TR 可以量化且推理，但似乎性能没有 SimAM 的 Version 1 好。
 
 ## Version 6 -- Transformer + SimAM Head -- 0807-tr-sa
 
