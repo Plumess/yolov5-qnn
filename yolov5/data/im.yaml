@@ -1,0 +1,11 @@
+path: /mnt/g/WSL/IM/Detection/yolov5-im/testdata
+ # dataset root dir
+train: train/images  # train images (relative to 'path') 128 images
+val: val/images  # val images (relative to 'path') 128 images
+test:  # test images (optional)
+
+# Classes
+names:
+  0: police
+  1: deliveryman
+  2: im
