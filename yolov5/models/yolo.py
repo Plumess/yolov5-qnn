@@ -56,7 +56,7 @@ class Detect(nn.Module):
     def forward(self, x):
         # 检查调用堆栈,区分QNN量化以及yolov5项目本身的功能
         stack = inspect.stack()
-        is_normal_use = any('val_rect.py' in frame.filename 
+        is_normal_use = any('val.py' in frame.filename 
                             or 'train.py' in frame.filename 
                             or 'detect.py' in frame.filename for frame in stack)
 
