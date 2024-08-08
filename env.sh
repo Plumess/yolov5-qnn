@@ -96,6 +96,13 @@ sed -i 's/^\(\[ -z "\$PS1" \] && return\)/#\1/' ~/.bashrc
 # 设置 conda 路径
 echo "正在配置 conda 环境，name = qnn ..."
 eval "$(conda shell.bash hook)"
+
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r/
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/pro/
+conda config --set show_channel_urls yes
+
 # 检查conda环境是否存在
 env_exists=$(conda info --envs | grep '^qnn\s')
 # 如果环境不存在，创建环境
@@ -112,9 +119,12 @@ echo "正在安装 onnx ..."
 pip install onnx -i https://mirrors.aliyun.com/pypi/simple/
 pip install onnxruntime -i https://mirrors.aliyun.com/pypi/simple/
 pip install onnxsim -i https://mirrors.aliyun.com/pypi/simple/
+
 # 安装 pytorch 所需环境
 echo "正在安装 pytorch ..."
-pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
+# pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
+conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+
 # 安装 yolo 所需环境
 pip install timm -i https://mirrors.aliyun.com/pypi/simple/
 pip install -r yolov5/requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
