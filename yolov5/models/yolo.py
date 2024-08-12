@@ -345,6 +345,14 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
                 args.insert(2, n)  # number of repeats
                 n = 1
 
+        elif m is CBAMC3:
+            c1, c2 = ch[f], args[0]
+            if c2 != no:  # if not output
+                c2 = make_divisible(c2 * gw, ch_mul)
+            args = [c1, c2, *args[1:]]
+            args.insert(2, n)  # number of repeats
+            n = 1
+
         elif m is SimAM:
                 c1, c2 = ch[f], args[0]
                 if c2 != no:

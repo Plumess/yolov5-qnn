@@ -259,8 +259,12 @@ def train(hyp, opt, device, callbacks):  # hyp is path/to/hyp.yaml or hyp dictio
     maps = np.zeros(nc)  # mAP per class
     results = (0, 0, 0, 0, 0, 0, 0)  # P, R, mAP@.5, mAP@.5-.95, val_loss(box, obj, cls)
     scheduler.last_epoch = start_epoch - 1  # do not move
-    # scaler = torch.cuda.amp.GradScaler(enabled=amp)
-    scaler = torch.amp.GradScaler(enabled=amp)
+    try:
+        # 尝试使用 torch.amp.GradScaler（适用于较新的 PyTorch 版本）
+        scaler = torch.amp.GradScaler(enabled=amp)
+    except AttributeError:
+        # 如果 torch.amp.GradScaler 不存在，则使用旧版本的 torch.cuda.amp.GradScaler
+        scaler = torch.cuda.amp.GradScaler(enabled=amp)
     stopper, stop = EarlyStopping(patience=opt.patience), False
     compute_loss = ComputeLoss(model)  # init loss class
     callbacks.run('on_train_start')

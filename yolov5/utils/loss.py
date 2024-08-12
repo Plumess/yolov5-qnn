@@ -139,8 +139,23 @@ class ComputeLoss:
                 pxy = pxy.sigmoid() * 2 - 0.5
                 pwh = (pwh.sigmoid() * 2) ** 2 * anchors[i]
                 pbox = torch.cat((pxy, pwh), 1)  # predicted box
-                iou = bbox_iou(pbox, tbox[i], CIoU=True).squeeze()  # iou(prediction, target)  #计算iou
-                lbox += (1.0 - iou).mean()  # iou loss
+                # iou = bbox_iou(pbox, tbox[i], CIoU=True).squeeze()  # iou(prediction, target)  #计算iou
+                # iou = bbox_iou(pbox, tbox[i], SIoU=True).squeeze()  # iou(prediction, target)  #计算iou
+                # lbox += (1.0 - iou).mean()  # iou loss
+                # ============替换WIoU之后的代码====================
+                iou = bbox_iou(pbox, tbox[i], WIoU=True, scale=True)
+                if type(iou) is tuple:
+                    if len(iou) == 2:
+                        lbox += (iou[1].detach().squeeze() * (1 - iou[0].squeeze())).mean()
+                        iou = iou[0].squeeze()
+                    else:
+                        lbox += (iou[0] * iou[1]).mean()
+                        iou = iou[2].squeeze()
+                else:
+                    lbox += (1.0 - iou.squeeze()).mean()  # iou loss
+                    iou = iou.squeeze()
+
+                # ==============================================
 # 加一个蒙版，obj在这一部分不计算损失
                 # Objectness
                 iou = iou.detach().clamp(0).type(tobj.dtype)

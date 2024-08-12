@@ -109,3 +109,13 @@ head:
 ## Version 6 -- Transformer + SimAM Head -- 0807-tr-sa
 
 在 Version 5 的基础上，Backbone 替换了最后一个 C3 为 C3TR，在 Head 添加了 SimAM 防止梯度消失。
+
+## Version 7 -- PSA + SIOU -- 0808-psa
+
+添加了psa模块，修改了bbox_iou为SIOU
+
+psa中的layernorm算子不支持，G
+
+
+
+
