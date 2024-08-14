@@ -26,3 +26,5 @@ val12
 testdata
 *.log
 logs/*
+rtdetr.py
+.pre-commit-config.yaml

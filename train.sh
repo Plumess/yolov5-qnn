@@ -1,5 +1,12 @@
-# 设置 conda 路径
-export CONDA_PATH=~/anaconda3
+# 检测 Miniconda 或 Anaconda 安装路径
+if [ -d "$HOME/miniconda3" ]; then
+    export CONDA_PATH="$HOME/miniconda3"
+elif [ -d "$HOME/anaconda3" ]; then
+    export CONDA_PATH="$HOME/anaconda3"
+else
+    echo "Neither Miniconda nor Anaconda found in the home directory."
+    exit 1
+fi
 source $CONDA_PATH/etc/profile.d/conda.sh
 export CONDA_ENV="qnn"
 # 切换为 conda 环境 (用torch)
@@ -41,7 +48,7 @@ echo "Start $TRAIN_PY, check $ROOT_DIR/logs/train_$MODEL_VERSION.log"
 
 # 单卡训练
 
-python $TRAIN_PY --device 0 --name $MODEL_VERSION --epochs 30 \
+python $TRAIN_PY --device 0 --name $MODEL_VERSION --epochs 35 \
                  --batch-size 4 \
                  --workers 4 \
                  --optimizer "AdamW" \

@@ -1,6 +1,7 @@
 #!/bin/bash
 # usage:
 # bash ./run.sh 0807-sa "512 960" ./val12 > ./logs/run_0807-sa.log 2>&1 &
+# bash ./run.sh 0812 "512 960" ./val2508 > ./logs/run_0812.log 2>&1 &
 
 source ~/.bashrc
 export QIK_VERSION="2.19.4.240226"
@@ -9,7 +10,15 @@ source ${QNN_SDK_ROOT}/bin/envsetup.sh
 export ROOT_DIR=$(pwd)
 
 # 设置 conda 路径
-export CONDA_PATH=~/anaconda3
+# 检测 Miniconda 或 Anaconda 安装路径
+if [ -d "$HOME/miniconda3" ]; then
+    export CONDA_PATH="$HOME/miniconda3"
+elif [ -d "$HOME/anaconda3" ]; then
+    export CONDA_PATH="$HOME/anaconda3"
+else
+    echo "Neither Miniconda nor Anaconda found in the home directory."
+    exit 1
+fi
 source $CONDA_PATH/etc/profile.d/conda.sh
 export CONDA_ENV="qnn"
 # 切换为 conda 环境 (用torch)
@@ -66,15 +75,15 @@ echo "infer.sh finished successfully"
 echo "raw results in ./infer_tmp/val_$OUT_VERSION"
 echo "final results in ./output/$OUT_VERSION"
 
-# # 开始对pred结果与ground truth做验证
-# echo ""
-# echo -e "\n----------------------------------------"
-# echo "Starting Val"
-# echo "Running val.sh..."
+# 开始对pred结果与ground truth做验证
+echo ""
+echo -e "\n----------------------------------------"
+echo "Starting Val"
+echo "Running val.sh..."
 
-# ./scripts/val.sh
-# echo "val.sh finished successfully"
+./scripts/val.sh
+echo "val.sh finished successfully"
 
-# echo ""
-# echo -e "\n----------------------------------------"
-# echo "All scripts have been executed successfully."
+echo ""
+echo -e "\n----------------------------------------"
+echo "All scripts have been executed successfully."

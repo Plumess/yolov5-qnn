@@ -123,7 +123,8 @@ pip install onnxsim -i https://mirrors.aliyun.com/pypi/simple/
 # 安装 pytorch 所需环境
 echo "正在安装 pytorch ..."
 # pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
-conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+# conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+pip install torch==2.1.0+cu118 torchvision==0.16.0+cu118 torchaudio==2.1.0+cu118 -f https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html
 
 # 安装 yolo 所需环境
 pip install timm -i https://mirrors.aliyun.com/pypi/simple/

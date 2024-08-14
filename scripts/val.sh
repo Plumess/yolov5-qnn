@@ -25,4 +25,4 @@ PRED_DIR="${PRED_DIR:-./output/$OUT_VERSION/pred_labels}"
 
 echo -e "\n----------------------------------------"
 echo "val $VAL_DIR ..."
-python scripts/val.py --img_dir $VAL_DIR/images --label_true_dir $VAL_DIR/labels --label_pred_dir $PRED_DIR
+python scripts/tools/val.py --img_dir $VAL_DIR/images --label_true_dir $VAL_DIR/labels --label_pred_dir $PRED_DIR
