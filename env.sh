@@ -109,26 +109,27 @@ env_exists=$(conda info --envs | grep '^qnn\s')
 if [ -z "$env_exists" ]; then
     echo "环境 'qnn' 不存在，正在创建..."
     conda create -n qnn python=3.8 -y
+    conda activate qnn
+
+    # 安装 onnx 所需环境
+    echo "正在安装 onnx ..."
+    pip install onnx -i https://mirrors.aliyun.com/pypi/simple/
+    pip install onnxruntime -i https://mirrors.aliyun.com/pypi/simple/
+    pip install onnxsim -i https://mirrors.aliyun.com/pypi/simple/
+
+    # 安装 pytorch 所需环境
+    echo "正在安装 pytorch ..."
+    # pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
+    pip install torch==2.1.0+cu118 torchvision==0.16.0+cu118 torchaudio==2.1.0+cu118 -f https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html
+    # conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+
+    # 安装 yolo 所需环境
+    pip install timm -i https://mirrors.aliyun.com/pypi/simple/
+    pip install -r yolov5/requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
 else
     echo "环境 'qnn' 已存在，跳过创建。"
 fi
 conda activate qnn
-
-# 安装 onnx 所需环境
-echo "正在安装 onnx ..."
-pip install onnx -i https://mirrors.aliyun.com/pypi/simple/
-pip install onnxruntime -i https://mirrors.aliyun.com/pypi/simple/
-pip install onnxsim -i https://mirrors.aliyun.com/pypi/simple/
-
-# 安装 pytorch 所需环境
-echo "正在安装 pytorch ..."
-# pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
-# conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
-pip install torch==2.1.0+cu118 torchvision==0.16.0+cu118 torchaudio==2.1.0+cu118 -f https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html
-
-# 安装 yolo 所需环境
-pip install timm -i https://mirrors.aliyun.com/pypi/simple/
-pip install -r yolov5/requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
 
 ## ENV VAR --------------------------------------------------------
 # 当前终端单次使用
