@@ -34,8 +34,8 @@ def parse(cfg="./models/yolov5x-im.yaml"):
     return layers
 
 # 加载模型配置和超参数
-cfg = "./models/yolov5x-c2f-rtd.yaml"  # 模型配置文件路径
-hyp = "./data/hyps/hyp.im-adamw.yaml"    # 超参数文件路径
+cfg = "./models/yolov5x-hyper.yaml"  # 模型配置文件路径
+hyp = "./data/hyps/hyp.im.yaml"    # 超参数文件路径
 nc = 3  # 类别数
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'  # 根据环境选择设备
 

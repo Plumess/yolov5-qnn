@@ -53,6 +53,133 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
         p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-pad
     return p
 
+class Conv(nn.Module):
+    # Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)
+    default_act = nn.SiLU()  # default activation
+
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
+        super().__init__()
+        self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+
+    def forward(self, x):
+        return self.act(self.bn(self.conv(x)))
+
+    def forward_fuse(self, x):
+        return self.act(self.conv(x))
+
+#------------------------------------MANet start -------------------------------------
+
+class MessageAgg(nn.Module):
+    def __init__(self, agg_method="mean"):
+        super().__init__()
+        self.agg_method = agg_method
+
+    def forward(self, X, path):
+        """
+            X: [n_node, dim]
+            path: col(source) -> row(target)
+        """
+        X = torch.matmul(path, X)
+        if self.agg_method == "mean":
+            norm_out = 1 / torch.sum(path, dim=2, keepdim=True)
+            norm_out[torch.isinf(norm_out)] = 0
+            X = norm_out * X
+            return X
+        elif self.agg_method == "sum":
+            pass
+        return X
+
+
+class HyPConv(nn.Module):
+    def __init__(self, c1, c2):
+        super().__init__()
+        self.fc = nn.Linear(c1, c2)
+        self.v2e = MessageAgg(agg_method="mean")
+        self.e2v = MessageAgg(agg_method="mean")
+
+
+    def forward(self, x, H):
+        x = self.fc(x)
+        # v -> e
+        E = self.v2e(x, H.transpose(1, 2).contiguous())
+        # e -> v
+        x = self.e2v(E, H)
+
+        return x
+
+
+class HyperComputeModule(nn.Module):
+    def __init__(self, c1, c2, threshold):
+        super().__init__()
+        self.threshold = threshold
+        self.hgconv = HyPConv(c1, c2)
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = nn.SiLU()
+
+
+    def forward(self, x):
+        b, c, h, w = x.shape[0], x.shape[1], x.shape[2], x.shape[3]
+        x = x.view(b, c, -1).transpose(1, 2).contiguous()
+        feature = x.clone()
+        distance = torch.cdist(feature, feature)
+        hg = distance < self.threshold
+        hg = hg.float().to(x.device).to(x.dtype)
+        x = self.hgconv(x, hg).to(x.device).to(x.dtype) + x
+        x = x.transpose(1, 2).contiguous().view(b, c, h, w)
+        x = self.act(self.bn(x))
+
+        return x
+
+class GroupConv(Conv):
+    """Depth-wise convolution."""
+
+    def __init__(self, c1, c2, k=1, s=1, d=1, act=True):  # ch_in, ch_out, kernel, stride, dilation, activation
+        super().__init__(c1, c2, k, s, g=math.gcd(c1, c2), d=d, act=act)
+
+class Bottleneck_MANet(nn.Module):
+    """Standard bottleneck."""
+
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
+        """Initializes a bottleneck module with given input/output channels, shortcut option, group, kernels, and
+        expansion.
+        """
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        """'forward()' applies the YOLO FPN to input data."""
+        return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
+
+class MANet(nn.Module):
+
+    def __init__(self, c1, c2, n=1, shortcut=False, p=1, kernel_size=3, g=1, e=0.5):
+        super().__init__()
+        self.c = int(c2 * e)
+        self.cv_first = Conv(c1, 2 * self.c, 1, 1)
+        self.cv_final = Conv((4 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(Bottleneck_MANet(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+        self.cv_block_1 = Conv(2 * self.c, self.c, 1, 1)
+        dim_hid = int(p * 2 * self.c)
+        self.cv_block_2 = nn.Sequential(Conv(2 * self.c, dim_hid, 1, 1), GroupConv(dim_hid, dim_hid, kernel_size, 1),
+                                      Conv(dim_hid, self.c, 1, 1))
+
+    def forward(self, x):
+        y = self.cv_first(x)
+        y0 = self.cv_block_1(y)
+        y1 = self.cv_block_2(y)
+        y2, y3 = y.chunk(2, 1)
+        y = list((y0, y1, y2, y3))
+        y.extend(m(y[-1]) for m in self.m)
+
+        return self.cv_final(torch.cat(y, 1))
+
+#------------------------------------MANet end -------------------------------------
+
 class Bottleneck_c2f(nn.Module):
     """Standard bottleneck."""
 
@@ -95,7 +222,6 @@ class C2f(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
-
 
 #------------------------------------Convnext start -------------------------------------
 #ConvNextBlock
@@ -444,23 +570,6 @@ class SimAM(torch.nn.Module):
         return output
 
 # End SimAM ------------------------------------------------------------------------------------------------
-
-
-class Conv(nn.Module):
-    # Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)
-    default_act = nn.SiLU()  # default activation
-
-    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
-        super().__init__()
-        self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
-        self.bn = nn.BatchNorm2d(c2)
-        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
-
-    def forward(self, x):
-        return self.act(self.bn(self.conv(x)))
-
-    def forward_fuse(self, x):
-        return self.act(self.conv(x))
 
 class Conv_drop(nn.Module):
     # Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)

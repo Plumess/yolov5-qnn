@@ -80,7 +80,8 @@ fi
 # 数据集txt中一定不要有空格，5418个的val中有 xx (2).jpg 这种文件名，会导致无法正确解析变量，记得删去
 # find "./" -type f -name "*(*)*.*" -exec echo "Deleting: {}" \; -exec rm {} \;
 export ADSP_LOG_LEVEL=3
-export INFER_TMP="./infer_tmp/val_$OUT_VERSION"
+export VAL_DIRNAME=$(basename "$VAL_DIR")
+export INFER_TMP="./infer_tmp/val-$OUT_VERSION-$VAL_DIRNAME"
 if [ ! -d "$INFER_TMP" ] || [ "$(ls -A $INFER_TMP | wc -l)" -eq 0 ]; then
     echo -e "\n----------------------------------------"
     echo "Running qnn-net-run for inference..."
@@ -98,7 +99,7 @@ fi
 # 使用 python 脚本进行推理结果后处理
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/yolov5"
-export RESULTS_DIR="./output/$OUT_VERSION"
+export RESULTS_DIR="./output/$OUT_VERSION-$VAL_DIRNAME"
 
 echo -e "\n----------------------------------------"
 echo "Running post-processing..."

@@ -21,7 +21,8 @@ OUT_VERSION="${OUT_VERSION:-$MODEL_VERSION}"
 # export VAL_DIR="./val"
 # 设置默认的验证集路径，如果环境变量未设置则使用默认值
 VAL_DIR="${VAL_DIR:-./val}"
-PRED_DIR="${PRED_DIR:-./output/$OUT_VERSION/pred_labels}"
+export VAL_DIRNAME=$(basename "$VAL_DIR")
+PRED_DIR="${PRED_DIR:-./output/$OUT_VERSION-$VAL_DIRNAME/pred_labels}"
 
 echo -e "\n----------------------------------------"
 echo "val $VAL_DIR ..."

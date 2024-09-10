@@ -1,7 +1,7 @@
 #!/bin/bash
 # usage:
 # bash ./run.sh 0807-sa "512 960" ./val12 > ./logs/run_0807-sa.log 2>&1 &
-# bash ./run.sh 0812 "512 960" ./val2508 > ./logs/run_0812.log 2>&1 &
+# bash ./run.sh 0730-finetune "512 960" ./val3000 > ./logs/run_0730-finetune.log 2>&1 &
 
 source ~/.bashrc
 export QIK_VERSION="2.19.4.240226"

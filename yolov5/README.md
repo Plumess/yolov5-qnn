@@ -385,4 +385,3 @@ class Detect(nn.Module):
         else:
             return (torch.cat(z, 1), x)
 ```
-

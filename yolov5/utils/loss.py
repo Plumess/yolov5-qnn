@@ -139,8 +139,8 @@ class ComputeLoss:
                 pxy = pxy.sigmoid() * 2 - 0.5
                 pwh = (pwh.sigmoid() * 2) ** 2 * anchors[i]
                 pbox = torch.cat((pxy, pwh), 1)  # predicted box
-                # iou = bbox_iou(pbox, tbox[i], CIoU=True).squeeze()  # iou(prediction, target)  #计算iou
-                iou = bbox_iou(pbox, tbox[i], SIoU=True).squeeze()  # iou(prediction, target)  #计算iou
+                iou = bbox_iou(pbox, tbox[i], CIoU=True).squeeze()  # iou(prediction, target)  #计算iou
+                # iou = bbox_iou(pbox, tbox[i], SIoU=True).squeeze()  # iou(prediction, target)  #计算iou
                 lbox += (1.0 - iou).mean()  # iou loss
                 # # ============替换WIoU之后的代码====================
                 # iou = bbox_iou(pbox, tbox[i], WIoU=True, scale=True)
